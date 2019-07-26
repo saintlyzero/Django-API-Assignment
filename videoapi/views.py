@@ -17,9 +17,14 @@ class VideoAPI(APIView):
     STATUS = 200
     
     def get(self, request):
-        userFiles = UserFiles.objects.all()
-        serializer = UserFilesSerializer(userFiles,many=True)
-        return Response(serializer.data)
+        req_userid = request.query_params['user_id']
+        userFilesSerializer = UserFilesSerializer(data = request.query_params)
+        if userFilesSerializer.is_valid(): 
+            userFiles = UserFiles.objects.filter(user_id = req_userid)
+            serializer = UserFilesSerializer(userFiles,many=True)
+            return Response(serializer.data)
+        else: 
+            return Response({'error':'user_id does not exist','status':self.STATUS})
        
 
     def post(self, request):
@@ -47,7 +52,11 @@ class VideoAPI(APIView):
                     fileDetails = csvChecker.get_local_file_details()
                     
                     """ Upload File to GSC """
-                    gcs_url = csvChecker.upload_file_to_bucket(fileDetails)
+                    gcs_service_resp = csvChecker.upload_file_to_bucket(fileDetails)
+                    if gcs_service_resp['error']:
+                        return Response({'error':'Error while uploading to GCS Bucket','status':self.STATUS})
+                    
+                    gcs_url = gcs_service_resp['gcp_url']
                     csvChecker.delete_local_file(fileDetails['path'])
 
                     """ Add Record of user_id and File URL """

@@ -12,7 +12,9 @@ class VideoSerializer(serializers.Serializer):
    video_name = serializers.CharField(max_length=200)
    video_size = serializers.IntegerField()
 
-class UserFilesSerializer(serializers.ModelSerializer):
-   class Meta:
-      model = UserFiles
-      fields = '__all__'
+class UserFilesSerializer(serializers.Serializer):
+   user_id = serializers.IntegerField()
+   file_path = serializers.CharField(max_length=500, required=False)
+   # class Meta:
+   #    model = UserFiles
+   #    fields = '__all__'

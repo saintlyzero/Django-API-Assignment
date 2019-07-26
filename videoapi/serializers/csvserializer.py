@@ -39,17 +39,26 @@ class CSVSerializer:
       return uploaded_file_url
 
    def upload_file_to_bucket(self, file_details):
+      
+      resp = {}
+      
       local_path = file_details['path']
       file_name = file_details['file_name']
       destination_blob_name = os.path.join('test',file_name)
-
-      """ Upload file to the bucket """
-      storage_client = storage.Client()
-      bucket = storage_client.get_bucket(self.bucket_name)
-      blob = bucket.blob(destination_blob_name)
-      blob.upload_from_filename(local_path)
-      gcs_url = 'https://storage.cloud.google.com/%(bucket)s/%(file)s' % {'bucket':self.bucket_name, 'file':destination_blob_name}
-      return gcs_url
+      
+      try:
+         """ Upload file to the bucket """
+         storage_client = storage.Client()
+         bucket = storage_client.get_bucket(self.bucket_name)
+         blob = bucket.blob(destination_blob_name)
+         blob.upload_from_filename(local_path)
+         gcs_url = 'https://storage.cloud.google.com/%(bucket)s/%(file)s' % {'bucket':self.bucket_name, 'file':destination_blob_name}
+         resp['error'] = False
+         resp['gcp_url'] = gcs_url
+      except:
+         resp['error'] = True
+      finally:
+         return resp
 
    def delete_local_file(self,file_path):
       os.system('rm -f '+file_path)

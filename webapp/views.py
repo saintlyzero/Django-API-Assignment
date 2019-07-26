@@ -10,6 +10,10 @@ from .models import Employees
 from .serializers import EmployeesSerializers
 from .services.employee_service import EmployeeService
 
+
+""" This APP is a Demo app. 
+    Go to Videoapi App      """
+    
 class EmployeeList(APIView):
 
     def get(self, request):
