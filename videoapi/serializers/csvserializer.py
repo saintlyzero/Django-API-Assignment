@@ -15,32 +15,42 @@ class CSVSerializer:
    COL2 = "video_size"
   
    bucket_name = 'b-ao-locale-19'
- 
+   
+   local_file_path = ''
+   local_file_name = ''
+   gcs_file_path = ''
+   
 
    def __del__(self):
       print('CSV Destructor')
 
    def __init__(self):
       pass
+   
+   def get_local_file_details(self):
+      local_file = {'path':self.local_file_path,'file_name':self.local_file_name}
+      return local_file
 
    def file_upload_local(self,reqest_file):
       
       fs = FileSystemStorage()
       filename = fs.save(reqest_file.name, reqest_file)
       uploaded_file_url = fs.url(filename)
-      # self.upload_file_to_bucket(uploaded_file_url,filename)
+      self.local_file_path = uploaded_file_url
+      self.local_file_name = filename
       return uploaded_file_url
 
-   def upload_file_to_bucket(self, local_path, file_name):
+   def upload_file_to_bucket(self, file_details):
+      local_path = file_details['path']
+      file_name = file_details['file_name']
       destination_blob_name = os.path.join('test',file_name)
       """Uploads a file to the bucket."""
       storage_client = storage.Client()
       bucket = storage_client.get_bucket(self.bucket_name)
       blob = bucket.blob(destination_blob_name)
       blob.upload_from_filename(local_path)
-      print('File {} uploaded to {}.'.format(local_path, destination_blob_name))
       gcs_url = 'https://storage.cloud.google.com/%(bucket)s/%(file)s' % {'bucket':self.bucket_name, 'file':destination_blob_name}
-      print('GCS path: ',gcs_url)
+      return gcs_url
 
    def delete_local_file(self,file_path):
       os.system('rm -f '+file_path)
@@ -79,7 +89,7 @@ class CSVSerializer:
      
       #Read the CSV File
       df = pd.read_csv(local_path)
-      self.delete_local_file(local_path)
+      # self.delete_local_file(local_path)
       
       #Validate Column names
       cols = df.keys()

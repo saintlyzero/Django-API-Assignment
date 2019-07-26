@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from ..models import UserFiles
 
 
 class APIRequestSerializer(serializers.Serializer):
@@ -10,3 +11,8 @@ class VideoSerializer(serializers.Serializer):
    user_id = serializers.IntegerField()
    video_name = serializers.CharField(max_length=200)
    video_size = serializers.IntegerField()
+
+class UserFilesSerializer(serializers.ModelSerializer):
+   class Meta:
+      model = UserFiles
+      fields = '__all__'
