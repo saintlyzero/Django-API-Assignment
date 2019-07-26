@@ -1,11 +1,9 @@
 from ..models import UserVideoMapping
 from ..serializers.serializers import VideoSerializer
 
+""" Adds Record in UserVideoMapping Table """
 
 class UserVideoService:
-
-    def __del__(self):
-        print('##__UserVideoService Dectructor__##')
 
     def add_video(data):
 
@@ -18,6 +16,8 @@ class UserVideoService:
             vsize = video["video_size"]
             tmp = {'user_id':uid,'video_name':vname,'video_size':vsize}
             video_serializer = VideoSerializer(data = tmp)
+
+            """ Validate every Record """
 
             if video_serializer.is_valid():
                 user_video_mapping = UserVideoMapping(user_id=uid,video_name=vname,video_size=vsize)

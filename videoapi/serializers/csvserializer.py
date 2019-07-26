@@ -21,9 +21,6 @@ class CSVSerializer:
    gcs_file_path = ''
    
 
-   def __del__(self):
-      print('CSV Destructor')
-
    def __init__(self):
       pass
    
@@ -31,6 +28,7 @@ class CSVSerializer:
       local_file = {'path':self.local_file_path,'file_name':self.local_file_name}
       return local_file
 
+   """ Store File Locally """
    def file_upload_local(self,reqest_file):
       
       fs = FileSystemStorage()
@@ -44,7 +42,8 @@ class CSVSerializer:
       local_path = file_details['path']
       file_name = file_details['file_name']
       destination_blob_name = os.path.join('test',file_name)
-      """Uploads a file to the bucket."""
+
+      """ Upload file to the bucket """
       storage_client = storage.Client()
       bucket = storage_client.get_bucket(self.bucket_name)
       blob = bucket.blob(destination_blob_name)
@@ -67,15 +66,16 @@ class CSVSerializer:
       isValid = False
       data = []
 
-      #check File Format
+      """ Check File Format """
       if rawFile.content_type != "text/csv":
          RESPONSE["errors"] ="CSV file required"
          return RESPONSE
 
       decoded_file = rawFile.read().decode('utf-8')
       io_string = io.StringIO(decoded_file)
+
       
-      #Check number of columns for each row
+      """ Check number of columns for each row """
       rawCSV = csv.reader(io_string, delimiter=',')
       for idx, line in enumerate(rawCSV):
    
@@ -83,17 +83,18 @@ class CSVSerializer:
             RESPONSE["errors"] = "Columns expected: "+str(self.NUMBER_OF_COLS)+" on line "+str(idx+1)
             return RESPONSE
       
-      #Store file locally
+      """ Store file locally """
       local_path = self.file_upload_local(rawFile)
       RESPONSE['local_file_path'] = local_path
      
-      #Read the CSV File
+
+      """ Read the CSV File """
       df = pd.read_csv(local_path)
-      # self.delete_local_file(local_path)
       
-      #Validate Column names
+      
+      """ Validate Column names """
+
       cols = df.keys()
-     
       if cols[0] != self.COL1 or cols[1] != self.COL2:
          
          RESPONSE["errors"] = "Expected column names: "+self.COL1+", "+self.COL2

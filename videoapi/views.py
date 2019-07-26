@@ -13,6 +13,8 @@ from .services.user_video_service import UserVideoService
 from .services.user_files_service import UserFilesService
 
 class VideoAPI(APIView):
+
+    STATUS = 200
     
     def get(self, request):
         userFiles = UserFiles.objects.all()
@@ -21,8 +23,6 @@ class VideoAPI(APIView):
        
 
     def post(self, request):
-
-        status = 200
 
         api_serializer = APIRequestSerializer(data=request.data)
 
@@ -34,18 +34,23 @@ class VideoAPI(APIView):
             csvCheckerResponse = csvChecker.checkCSV(fileobj)
             if csvCheckerResponse["valid"]:
                 csvCheckerResponse["user_id"]= user_id
-                # Save in DB
+                
+                """ Save in user_video_mapping table """
+                
                 add_video_response = UserVideoService.add_video(csvCheckerResponse)
                 add_video_response['user_id'] = user_id 
-                add_video_response['status'] = status
+                add_video_response['status'] = self.STATUS
 
                 if not add_video_response['errors_present']:     
                     add_video_response.pop('errors',None)
                     add_video_response.pop('errors_present',None)
                     fileDetails = csvChecker.get_local_file_details()
                     
+                    """ Upload File to GSC """
                     gcs_url = csvChecker.upload_file_to_bucket(fileDetails)
                     csvChecker.delete_local_file(fileDetails['path'])
+
+                    """ Add Record of user_id and File URL """
                     userFileService = UserFilesService()
                     userFileService.addUserVideoRecord(user_id,gcs_url)
 
@@ -55,11 +60,11 @@ class VideoAPI(APIView):
             else:
                 error_details={}
                 error_details["errors"] = csvCheckerResponse["errors"]
-                error_details["status"] = status
+                error_details["status"] = self.STATUS
                 return Response(error_details)
 
         else:
             error_details={}
             error_details["errors"] = api_serializer.errors.keys()
-            error_details["status"] = status
+            error_details["status"] = self.STATUS
             return Response(error_details) 

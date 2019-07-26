@@ -9,4 +9,3 @@ class UserVideoMapping(models.Model):
 class UserFiles(models.Model):
     user_id = models.IntegerField()
     file_path = models.CharField(max_length=500)
-    # created_date = models.DateTimeField()
